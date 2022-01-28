@@ -1175,14 +1175,14 @@ module SVG
           end
         end
 
-        @root << Comment.new( "SVG Background" )
-        @root.add_element( "rect", {
-          "width" => width.to_s,
-          "height" => height.to_s,
-          "x" => "0",
-          "y" => "0",
-          "class" => "svgBackground"
-        })
+        # @root << Comment.new( "SVG Background" )
+        # @root.add_element( "rect", {
+        #   "width" => width.to_s,
+        #   "height" => height.to_s,
+        #   "x" => "0",
+        #   "y" => "0",
+        #   "class" => "svgBackground"
+        # })
       end
 
       #
@@ -1198,9 +1198,6 @@ module SVG
       def get_style
         return <<EOL
 /* Copy from here for external style sheet */
-.svgBackground{
-  fill:#ffffff;
-}
 .graphBackground{
   fill:#f0f0f0;
 }
