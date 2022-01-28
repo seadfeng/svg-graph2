@@ -72,6 +72,7 @@ module SVG
       # [datapoint_font_size] 12
       def set_defaults
         init_with(
+          :show_split             => true,
           :show_shadow		        => true,
           :shadow_offset	        => 10,
 
@@ -120,8 +121,11 @@ module SVG
             @data[idx] += arg[:data][idx]
           end
         }
+        init_colors(arg)
       end
 
+      # If true, displays a split border for the chart
+      attr_accessor :show_split
       # If true, displays a drop shadow for the chart
       attr_accessor :show_shadow
       # Sets the offset of the shadow from the pie chart
@@ -197,7 +201,7 @@ module SVG
       def draw_data
         @graph = @root.add_element( "g" )
         background = @graph.add_element("g")
-        midground = @graph.add_element("g")
+        midground = @graph.add_element("g") 
 
         diameter = @graph_height > @graph_width ? @graph_width : @graph_height
         diameter -= expand_gap if expanded or expand_greatest
@@ -232,7 +236,9 @@ module SVG
               "cx" => radius.to_s,
               "cy" => radius.to_s,
               "r" => radius.to_s,
-              "class" => "fill#{count+1}"
+              "fill" => "#{@colors[count]}",
+              "stroke" => "none",
+              "stroke-width" => 1
             })
 
             if show_shadow
@@ -241,34 +247,66 @@ module SVG
                 "cy" => radius.to_s,
                 "r" => radius.to_s,
                 "filter" => "url(#dropshadow)",
-                "style" => "fill: #ccc; stroke: none;"
+                "fill" => "#ccc",
+                "stroke" => "none"
               })
               clear = midground.add_element( "circle", {
                 "cx" => radius.to_s,
                 "cy" => radius.to_s,
                 "r" => radius.to_s,
-                "style" => "fill: #fff; stroke: none;"
+                "fill" => "#fff",
+                "stroke" => "none" 
               })
               shadow.attributes["transform"] =
                 "translate( #{shadow_offset} #{shadow_offset} )"
             end
           else
+            radius_a = radius + 2
             x_start = radius+(Math.sin(radians) * radius)
             y_start = radius-(Math.cos(radians) * radius)
+            x_start_a = x_start+(Math.sin(radians) * 2)
+            y_start_a = y_start-(Math.cos(radians) * 2)
             radians = (prev_percent+percent) * rad_mult
+            radians_a = (prev_percent+percent) * rad_mult
             x_end = radius+(Math.sin(radians) * radius)
-            x_end -= 0.00001 if @data.length == 1
+            x_end_a = x_end+(Math.sin(radians) * 2)
+            if @data.length == 1
+              x_end -= 0.00001
+              x_end_a -= 0.00001
+            end
             y_end = radius-(Math.cos(radians) * radius)
+            y_end_a = y_end-(Math.cos(radians) * 2)
+
             path = "M#{radius},#{radius} L#{x_start},#{y_start} "+
               "A#{radius},#{radius} "+
               "0, #{percent >= 50 ? '1' : '0'},1, "+
-              "#{x_end} #{y_end} Z"
-
+              "#{x_end} #{y_end} Z" 
 
             wedge = @foreground.add_element( "path", {
               "d" => path,
-              "class" => "fill#{count+1}"
-            })
+              "stroke"=> show_split ? "#fff" : "none",
+              "stroke-width"=> 3,
+              "fill" => "#{@colors[count]}",
+              "class" => "fill-color" 
+            }) 
+           if show_split
+              # split = @front.add_element( "path", {
+              #   "d" => path,
+              #   "fill" => "none",
+              #   "stroke-width" => 2,
+              #   "stroke" => "white"
+              # })
+              border_path = "M#{x_start_a} #{y_start_a} "+
+              "A#{radius_a},#{radius_a} "+
+              "0, #{percent >= 50 ? '1' : '0'},1, "+
+              "#{x_end_a} #{y_end_a}"
+              @foreground.add_element( "path", {
+                "d" => border_path,
+                "fill" => "none",
+                "stroke-width" => 2,
+                "stroke" => "none"
+              })
+            end
 
             translate = nil
             tx = 0
@@ -280,11 +318,13 @@ module SVG
               shadow = background.add_element( "path", {
                 "d" => path,
                 "filter" => "url(#dropshadow)",
-                "style" => "fill: #ccc; stroke: none;"
+                "fill" => "#ccc",
+                "stroke" => "none" 
               })
               clear = midground.add_element( "path", {
                 "d" => path,
-                "style" => "fill: #fff; stroke: none;"
+                "fill" => "#ccc",
+                "stroke" => "none" 
               })
             end
 
@@ -306,7 +346,7 @@ module SVG
 
           if show_data_labels and value != 0
             label = ""
-            label += @config[:fields][count] if show_key_data_labels
+            label += @config[:fields][count].truncate(30) if show_key_data_labels
             label += " ["+value.to_s+"]" if show_actual_values
             label += " "+percent.round.to_s+"%" if show_percent
 
@@ -320,16 +360,15 @@ module SVG
               ty -= (mcr * expand_gap)
             end
             @foreground.add_element( "text", {
-              "x" => tx.to_s,
-              "y" => ty.to_s,
-              "class" => "dataPointLabel",
-              "style" => "stroke: #fff; stroke-width: 2;"
+              "x" => radius,
+              "y" => radius*2 + 20,
+              "class" => "dataPointLabel", 
+              "paint-order" => "stroke",
+              "stroke" => "#fff", 
+              "stroke-width" => "2",
+              # "transform" => "translate()",
             }).text = label.to_s
-            @foreground.add_element( "text", {
-              "x" => tx.to_s,
-              "y" => ty.to_s,
-              "class" => "dataPointLabel",
-            }).text = label.to_s
+ 
           end
         }
       end
@@ -340,6 +379,17 @@ module SVG
         (val * up).to_i / up
       end
 
+      def item_color(idx)
+        return ".key#{idx+1},.fill#{idx+1}{ fill: ##{color}; stroke: none; stroke-width: 1px; }"
+      end
+
+      def items_color 
+        css_color = ""
+        @data.each_index do |idx|
+          css_color += item_color(idx)
+        end
+        css_color
+      end
 
       def get_css
         return <<EOL
@@ -360,81 +410,22 @@ module SVG
   fill: #000000;
   visibility: hidden;
   stroke-width: 2;
+} 
+.fill-color{ 
+  opacity: 0.8;
+ }
+.fill-color + path + text { 
+  opacity: 0;
 }
-
-/* key - MUST match fill styles */
-.key1,.fill1{
-	fill: #ff0000;
-	fill-opacity: 0.7;
-	stroke: none;
-	stroke-width: 1px;
+.fill-color:hover{
+  opacity: 1;   
 }
-.key2,.fill2{
-	fill: #0000ff;
-	fill-opacity: 0.7;
-	stroke: none;
-	stroke-width: 1px;
+.fill-color:hover + path  + text{
+  opacity: 1;
 }
-.key3,.fill3{
-	fill-opacity: 0.7;
-	fill: #00ff00;
-	stroke: none;
-	stroke-width: 1px;
-}
-.key4,.fill4{
-	fill-opacity: 0.7;
-	fill: #ffcc00;
-	stroke: none;
-	stroke-width: 1px;
-}
-.key5,.fill5{
-	fill-opacity: 0.7;
-	fill: #00ccff;
-	stroke: none;
-	stroke-width: 1px;
-}
-.key6,.fill6{
-	fill-opacity: 0.7;
-	fill: #ff00ff;
-	stroke: none;
-	stroke-width: 1px;
-}
-.key7,.fill7{
-	fill-opacity: 0.7;
-	fill: #00ff99;
-	stroke: none;
-	stroke-width: 1px;
-}
-.key8,.fill8{
-	fill-opacity: 0.7;
-	fill: #ffff00;
-	stroke: none;
-	stroke-width: 1px;
-}
-.key9,.fill9{
-	fill-opacity: 0.7;
-	fill: #cc6666;
-	stroke: none;
-	stroke-width: 1px;
-}
-.key10,.fill10{
-	fill-opacity: 0.7;
-	fill: #663399;
-	stroke: none;
-	stroke-width: 1px;
-}
-.key11,.fill11{
-	fill-opacity: 0.7;
-	fill: #339900;
-	stroke: none;
-	stroke-width: 1px;
-}
-.key12,.fill12{
-	fill-opacity: 0.7;
-	fill: #9966FF;
-	stroke: none;
-	stroke-width: 1px;
-}
+.fill-color:hover + path { 
+  stroke: #ccc;
+ }
 EOL
       end
     end

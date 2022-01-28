@@ -5,6 +5,7 @@ rescue
 end
 
 require 'rexml/document'
+require 'color-generator'
 
 module SVG
   module Graph
@@ -105,6 +106,7 @@ module SVG
         @config = config
         # array of Hash
         @data = []
+        @color_generator = ColorGenerator.new saturation: 1, value: 1.0
         #self.top_align = self.top_font = 0
         #self.right_align = self.right_font = 0
 
@@ -190,9 +192,13 @@ module SVG
       def add_data(conf)
         @data ||= []
         raise "No data provided by #{conf.inspect}" unless conf[:data].is_a?(Array)
-
+        init_colors(conf)
         add_data_init_or_check_optional_keys(conf, conf[:data].size)
         @data << conf
+      end
+
+      def init_colors(conf)
+        @colors = conf[:data].map{|x| "##{color}" }
       end
 
       # Checks all optional keys of the add_data method
@@ -222,6 +228,9 @@ module SVG
         @data = []
       end
 
+      def color 
+        @color_generator.create_hex
+      end
 
       # This method processes the template with the data and
       # config which has been set and returns the resulting SVG.
@@ -236,12 +245,12 @@ module SVG
 
         start_svg
         calculate_graph_dimensions
-        @foreground = Element.new( "g" )
+        @foreground = Element.new( "g" ) 
         draw_graph
         draw_titles
         draw_legend
         draw_data  # this method needs to be implemented by child classes
-        @graph.add_element( @foreground )
+        @graph.add_element( @foreground , {  "class" => "foreground"}) 
         style
 
         data = ""
@@ -641,7 +650,7 @@ module SVG
         @border_bottom = 7
         if key and key_position == :bottom
           @border_bottom += @data.size * (font_size + 5)
-          @border_bottom += 10
+          @border_bottom += 10 + 20
         end
         @border_bottom += max_x_label_height_px
         if (show_x_title && (x_title_location ==:middle))
@@ -1045,7 +1054,8 @@ module SVG
               "y" => y_offset.to_s,
               "width" => key_box_size.to_s,
               "height" => key_box_size.to_s,
-              "class" => "key#{key_count+1}"
+              "fill" => "#{@colors[key_count]}"
+              # "class" => "key#{key_count+1}"
             })
             group.add_element( "text", {
               "x" => (key_box_size + key_spacing).to_s,
@@ -1061,7 +1071,7 @@ module SVG
             y_offset = @border_top + (key_spacing * 2)
           when :bottom
             x_offset = @border_left + (key_spacing * 2)
-            y_offset = @border_top + @graph_height + key_spacing
+            y_offset = @border_top + @graph_height + key_spacing + 20
             if show_x_labels
               y_offset += max_x_label_height_px
             end
@@ -1182,7 +1192,7 @@ module SVG
         calculate_bottom_margin
         calculate_top_margin
         @graph_width = width - @border_left - @border_right
-        @graph_height = height - @border_top - @border_bottom
+        @graph_height = height - @border_top - @border_bottom  
       end
 
       def get_style
@@ -1194,6 +1204,7 @@ module SVG
 .graphBackground{
   fill:#f0f0f0;
 }
+ 
 
 /* graphs titles */
 .mainTitle{

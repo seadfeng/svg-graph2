@@ -58,7 +58,7 @@ the Perl original at all.
   #s.rubyforge_project = %q{ruby-statsample}
   #s.rubygems_version = %q{1.8.6}
   s.summary = %q{SVG:::Graph is a pure Ruby library for generating charts, which are a type of graph where the values of one axis are not scalar.}
-
+  s.add_dependency 'color-generator'
   #if s.respond_to? :specification_version then
   #  s.specification_version = 3
   #
