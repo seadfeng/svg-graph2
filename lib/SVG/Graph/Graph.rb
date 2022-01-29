@@ -650,9 +650,9 @@ module SVG
         @border_bottom = 7
         if key and key_position == :bottom
           @border_bottom += @data.size * (font_size + 5)
-          @border_bottom += 10 + 20
+          @border_bottom += 10 
         end
-        @border_bottom += max_x_label_height_px
+        @border_bottom += max_x_label_height_px + 20
         if (show_x_title && (x_title_location ==:middle))
           @border_bottom += x_title_font_size + 5
         end
