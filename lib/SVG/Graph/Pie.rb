@@ -362,8 +362,7 @@ module SVG
             @foreground.add_element( "text", {
               "x" => radius,
               "y" => radius*2 + 20,
-              "class" => "dataPointLabel", 
-              "paint-order" => "stroke",
+              "class" => "dataPointLabel",  
               "stroke" => "#fff", 
               "stroke-width" => "2",
               # "transform" => "translate()",

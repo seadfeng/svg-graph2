@@ -1151,9 +1151,7 @@ module SVG
           "height" => height.to_s,
           "viewBox" => "0 0 #{width} #{height}",
           "xmlns" => "http://www.w3.org/2000/svg",
-          "xmlns:xlink" => "http://www.w3.org/1999/xlink",
-          "xmlns:a3" => "http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/",
-          "a3:scriptImplementation" => "Adobe"
+          "xmlns:xlink" => "http://www.w3.org/1999/xlink" 
         })
         @root << Comment.new( " "+"\\"*66 )
         @root << Comment.new( " Created with SVG::Graph " )
