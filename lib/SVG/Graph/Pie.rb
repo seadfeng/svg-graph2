@@ -363,7 +363,7 @@ module SVG
               "x" => radius,
               "y" => radius*2 + 20,
               "class" => "dataPointLabel",  
-              "stroke" => "#fff", 
+              "stroke" => "none", 
               "stroke-width" => "2",
               # "transform" => "translate()",
             }).text = label.to_s
