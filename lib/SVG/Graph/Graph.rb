@@ -167,7 +167,8 @@ module SVG
           :popup_radius         => 10,
           :number_format        => '%.2f',
           :style_sheet          => '',
-          :inline_style_sheet   => ''
+          :inline_style_sheet   => '',
+          :urls                 =>  [],
         })
         set_defaults if self.respond_to? :set_defaults
         # override default values with user supplied values
@@ -473,6 +474,9 @@ module SVG
       # Background Color
       attr_accessor :show_background  
 
+      # Key Url
+      attr_accessor :urls
+
 
       protected
 
@@ -615,7 +619,7 @@ module SVG
           })
           if !url.nil?
             href = Element.new("a")
-            href.add_attribute("xlink:href", url)
+            href.add_attribute("href", url)
             href.add_element(mouseover)
             @foreground.add_element(href)
           else
@@ -631,7 +635,7 @@ module SVG
             "style" => "opacity: 0",
           })
           href = Element.new("a")
-          href.add_attribute("xlink:href", url)
+          href.add_attribute("href", url)
           href.add_element(mouseover)
           @foreground.add_element(href)
         end # if add_popups
@@ -660,7 +664,7 @@ module SVG
           @border_bottom += @data.size * (font_size + 5)
           @border_bottom += 10 
         end
-        @border_bottom += max_x_label_height_px + 20
+        @border_bottom += max_x_label_height_px + 30
         if (show_x_title && (x_title_location ==:middle))
           @border_bottom += x_title_font_size + 5
         end
@@ -700,7 +704,7 @@ module SVG
 
         draw_x_axis
         draw_y_axis
-        
+
         draw_x_labels
         draw_y_labels
       end
@@ -1067,11 +1071,26 @@ module SVG
               "fill" => "#{@colors[key_count]}"
               # "class" => "key#{key_count+1}"
             })
-            group.add_element( "text", {
+            unless urls.blank? 
+              href = Element.new("a")
+              href.add_attributes({"href" =>  urls[key_count], "rel" => "nofollow", "target" => "_blank"}) 
+            end
+
+            text = Element.new("text")
+            text.add_attributes({
               "x" => (key_box_size + key_spacing).to_s,
               "y" => (y_offset + key_box_size).to_s,
               "class" => "keyText"
-            }).text = key_name.to_s
+            })
+
+            if urls.blank?  
+              group.add_element( text ).text = key_name.to_s 
+            else
+              href.add_element(text).text = key_name.to_s
+              group.add_element( href )
+            end
+              
+
             key_count += 1
           end
 
@@ -1081,7 +1100,7 @@ module SVG
             y_offset = @border_top + (key_spacing * 2)
           when :bottom
             x_offset = @border_left + (key_spacing * 2)
-            y_offset = @border_top + @graph_height + key_spacing + 20
+            y_offset = @border_top + @graph_height + key_spacing + 30
             if show_x_labels
               y_offset += max_x_label_height_px
             end

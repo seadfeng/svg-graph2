@@ -90,7 +90,8 @@ module SVG
 
           :show_x_labels          => false,
           :show_y_labels          => false,
-          :datapoint_font_size    => 12
+          :datapoint_font_size    => 12,
+          :urls  => []
         )
         @data = []
       end
@@ -150,8 +151,7 @@ module SVG
       # The amount of space between expanded wedges
       attr_accessor :expand_gap
       # The font size of the data point labels
-      attr_accessor :datapoint_font_size
-
+      attr_accessor :datapoint_font_size 
 
       protected
 
@@ -346,7 +346,7 @@ module SVG
 
           if show_data_labels and value != 0
             label = ""
-            label += @config[:fields][count].truncate(30) if show_key_data_labels
+            label += @config[:fields][count].truncate(50) if show_key_data_labels
             label += " ["+value.to_s+"]" if show_actual_values
             label += " "+percent.round.to_s+"%" if show_percent
 

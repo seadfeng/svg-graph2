@@ -65,10 +65,11 @@ module SVG
         init_with(
           :rotate_y_labels    => true,
           :show_x_guidelines  => true,
-          :show_y_guidelines  => false
+          :show_y_guidelines  => false,
+          :urls  => []
         )
         # self.right_align = self.right_font = 1
-      end
+      end 
 
       protected
 
@@ -131,7 +132,13 @@ module SVG
             length = (value.abs - (minvalue > 0 ? minvalue : 0))/@x_scale_division.to_f * field_width
             left = (minvalue.abs + (value < 0 ? value : 0))/@x_scale_division.to_f * field_width
 
-            @graph.add_element( "rect", {
+            
+            unless urls.blank? 
+              href = Element.new("a")
+              href.add_attributes({"href" =>  urls[i], "rel" => "nofollow", "target" => "_blank"}) 
+            end
+            rect = Element.new( "rect" )
+            rect.add_attributes({
               "x" => left.to_s,
               "y" => top.to_s,
               "width" => length.to_s,
@@ -139,13 +146,26 @@ module SVG
               "fill" => "#{@colors[i]}",
               "class" => "fill-rect" 
             })
+            if urls.blank?  
+              @graph.add_element(rect) 
+            else
+              href.add_element(rect)
+              @graph.add_element(href) 
+            end
+
             value_string = ""
             value_string += (@number_format % dataset[:data][i]) if show_actual_values
             percent = 100.0 * dataset[:data][i] / total
             value_string += " (" + percent.round.to_s + "%)" if show_percent
             make_datapoint_text(left+length+5, top+y_mod, value_string, "text-anchor: start; ")
             # number format shall not apply to popup (use .to_s conversion)
-            add_popup(left+length, top+y_mod , value_string)
+            
+            if urls.blank?
+              add_popup(left+length, top+y_mod , value_string )
+            else
+              add_popup(left+length, top+y_mod , value_string, "", urls[i])
+            end
+
             dataset_count += 1
           end
           field_count += 1
