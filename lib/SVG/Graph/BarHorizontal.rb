@@ -136,7 +136,8 @@ module SVG
               "y" => top.to_s,
               "width" => length.to_s,
               "height" => bar_height.to_s,
-              "class" => "fill#{dataset_count+1}"
+              "fill" => "#{@colors[i]}",
+              "class" => "fill-rect" 
             })
             value_string = ""
             value_string += (@number_format % dataset[:data][i]) if show_actual_values

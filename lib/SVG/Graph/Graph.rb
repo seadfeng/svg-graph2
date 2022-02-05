@@ -161,6 +161,7 @@ module SVG
           :key_box_size         => 12,
           :key_spacing          => 5,
 
+          :show_background      => false,
           :no_css               => false,
           :add_popups           => false,
           :popup_radius         => 10,
@@ -198,7 +199,7 @@ module SVG
       end
 
       def init_colors(conf)
-        @colors = conf[:data].map{|x| "##{color}" }
+        @colors ||= conf[:data].map{|x| "##{color}" } 
       end
 
       # Checks all optional keys of the add_data method
@@ -251,6 +252,7 @@ module SVG
         draw_legend
         draw_data  # this method needs to be implemented by child classes
         @graph.add_element( @foreground , {  "class" => "foreground"}) 
+        
         style
 
         data = ""
@@ -465,6 +467,12 @@ module SVG
       # If you don't want to change the format in any way you can use "%s". Defaults to "%.2f"
       attr_accessor :number_format
 
+      # Use own colors
+      attr_accessor :colors  
+
+      # Background Color
+      attr_accessor :show_background  
+
 
       protected
 
@@ -472,7 +480,7 @@ module SVG
       def sort( *arrys )
         new_arrys = arrys.transpose.sort_by(&:first).transpose
         new_arrys.each_index { |k| arrys[k].replace(new_arrys[k]) }
-      end
+      end 
 
       # Overwrite configuration options with supplied options.  Used
       # by subclasses.
@@ -679,18 +687,20 @@ module SVG
           "transform" => "translate( #@border_left #@border_top )"
         })
 
-        # Background
-        @graph.add_element( "rect", {
-          "x" => "0",
-          "y" => "0",
-          "width" => @graph_width.to_s,
-          "height" => @graph_height.to_s,
-          "class" => "graphBackground"
-        })
+        if show_background
+          # Background
+          @graph.add_element( "rect", {
+            "x" => "0",
+            "y" => "0",
+            "width" => @graph_width.to_s,
+            "height" => @graph_height.to_s,
+            "class" => "graphBackground"
+          }) 
+        end
 
         draw_x_axis
         draw_y_axis
-
+        
         draw_x_labels
         draw_y_labels
       end
