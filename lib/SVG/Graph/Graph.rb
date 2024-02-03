@@ -572,7 +572,7 @@ module SVG
       end
 
       # Adds pop-up point information to a graph only if the config option is set.
-      def add_popup( x, y, label, style="", url="" )
+      def add_popup( x, y, label, style="", url= nil )
         if add_popups
           if( numeric?(label) )
             label = @number_format % label
